@@ -1,0 +1,30 @@
+/* HeroUI v3 includes Tailwind v4, animations, and component styles */
+@import "@heroui/react/styles";
+
+/* App-level base overrides */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #f9fafb; /* gray-50 */
+    color: #111827; /* gray-900 */
+    -webkit-font-smoothing: antialiased;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+/* Utility: lazy image fade */
+.img-lazy {
+  transition: opacity 0.3s ease;
+}
+
+/* Hide scrollbar on category tabs strip */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

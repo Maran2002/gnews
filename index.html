@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Default SEO (overridden per-page by react-helmet-async) -->
+    <meta name="description" content="GNews – Latest breaking news, headlines and live updates across India, World, Business, Technology, Sports and more." />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#dc2626" />
+
+    <!-- Open Graph defaults -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="GNews" />
+    <meta property="og:title" content="GNews – Latest News &amp; Headlines" />
+    <meta property="og:description" content="GNews – Stay informed with the latest breaking news and headlines from trusted sources." />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- Twitter Card defaults -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="GNews – Latest News &amp; Headlines" />
+    <meta name="twitter:description" content="Breaking news, top stories and live updates from GNews." />
+
+    <!-- Primary title (overridden by HelmetProvider per-page) -->
+    <title>GNews – Latest News &amp; Headlines</title>
+
+    <!-- Structured Data: NewsMediaOrganization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsMediaOrganization",
+      "name": "GNews",
+      "url": "https://yourdomain.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://yourdomain.com/favicon.svg"
+      },
+      "description": "GNews is a curated news aggregation platform delivering the latest headlines from trusted Indian and global publishers.",
+      "sameAs": []
+    }
+    </script>
+
+    <!-- Google AdSense
+         IMPORTANT: Replace ca-pub-PLACEHOLDER with your real publisher ID.
+         auto-ads intentionally disabled — we control placement manually.
+    -->
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=pub-2301949884606683"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+
+  <body>
+    <!-- noscript: ensures Google sees meaningful content even without JS execution -->
+    <noscript>
+      <div style="font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; text-align: center; color: #374151;">
+        <h1 style="color: #dc2626; font-size: 24px; margin-bottom: 12px;">GNews</h1>
+        <p style="font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
+          GNews is a curated news aggregation platform covering Breaking News, India, World, Business,
+          Technology, Sports, Entertainment, Health and Science from trusted RSS sources.
+        </p>
+        <p style="font-size: 13px; color: #6b7280;">
+          This page requires JavaScript to display the latest headlines. Please enable JavaScript in your browser to continue.
+        </p>
+        <nav style="margin-top: 24px; font-size: 13px;">
+          <a href="/" style="color: #dc2626; margin: 0 8px;">Home</a>
+          <a href="/about" style="color: #dc2626; margin: 0 8px;">About</a>
+          <a href="/privacy" style="color: #dc2626; margin: 0 8px;">Privacy Policy</a>
+          <a href="/terms" style="color: #dc2626; margin: 0 8px;">Terms</a>
+        </nav>
+      </div>
+    </noscript>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
