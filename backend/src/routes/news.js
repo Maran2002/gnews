@@ -8,6 +8,7 @@ router.get('/search', async (req, res) => {
   const q = req.query.q || ''
   const page = Math.max(1, parseInt(req.query.page, 10) || 1)
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 12))
+  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300')
   try {
     const data = await searchNews({ q, page, limit })
     return res.json(data)
@@ -18,6 +19,7 @@ router.get('/search', async (req, res) => {
 
 // GET /api/news/meta
 router.get('/meta', async (_req, res) => {
+  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300')
   try {
     const { total } = await getPaginatedNews({ page: 1, limit: 1 })
     const lastRefreshedAt = await getLastRefreshedAt()
@@ -32,6 +34,7 @@ router.get('/', async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1)
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 12))
   const category = req.query.category || 'all'
+  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300')
   try {
     const data = await getPaginatedNews({ page, limit, category })
     return res.json(data)
@@ -42,6 +45,7 @@ router.get('/', async (req, res) => {
 
 // GET /api/news/:id
 router.get('/:id', async (req, res) => {
+  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300')
   try {
     const item = await getItemById(req.params.id)
     if (!item) return res.status(404).json({ message: 'Article not found.' })

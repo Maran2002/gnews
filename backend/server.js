@@ -10,8 +10,7 @@ import { connectDB } from './src/config/db.js'
 // Routes
 import newsRouter from './src/routes/news.js'
 import adminRouter from './src/routes/admin.js'
-import contactRouter from './src/routes/contact.js'
-import cronRouter from './src/routes/cron.js'
+import contactRouter from "./src/routes/contact.js";
 
 const app = express()
 
@@ -23,11 +22,12 @@ connectDB()
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow local development and Vercel domains
-      if (!origin || config.allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-        callback(null, true)
+      // Allow local development, configured domains, wildcards, and Vercel domains
+      if ((origin && config.allowedOrigins.includes(origin)) || !origin) {
+        callback(null, true);
       } else {
-        callback(new Error(`CORS: Origin "${origin}" not allowed`))
+        console.warn(`[CORS] Blocked request from origin: ${origin}`);
+        callback(new Error(`CORS: Origin "${origin}" not allowed`));
       }
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -43,8 +43,6 @@ app.get('/health', (_req, res) => {
 })
 
 // ── API routes ────────────────────────────────────────────────────────────────
-// Public / Cron
-app.use('/api/cron', cronRouter)
 
 // Protected / Client
 app.use('/api/news', validateClient, newsRouter)

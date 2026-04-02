@@ -4,7 +4,7 @@ export const config = {
   port: parseInt(process.env.PORT, 10),
   serverSourceName: process.env.SERVER_SOURCE_NAME,
   expectedClientSource: process.env.EXPECTED_CLIENT_SOURCE,
-  allowedOrigins: (process.env.ALLOWED_ORIGINS)
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || '')
     .split(',')
     .map((o) => o.trim()),
   feedRefreshMinutes: parseInt(process.env.FEED_REFRESH_MINUTES, 10),

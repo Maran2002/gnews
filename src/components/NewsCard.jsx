@@ -7,7 +7,7 @@ export default function NewsCard({ item }) {
   const cleanDescription = stripHtml(description)
 
   return (
-    <article className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col h-full">
+    <article className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col h-full">
       {/* Thumbnail */}
       <Link to={`/news/${id}`} aria-label={title} tabIndex={-1}>
         <div className="relative w-full h-44 bg-gray-100 overflow-hidden">
@@ -16,7 +16,7 @@ export default function NewsCard({ item }) {
               src={imageUrl}
               alt={title}
               loading="lazy"
-              className="w-full h-full object-cover img-lazy hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover img-lazy group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-300">

@@ -2,25 +2,53 @@ import { parseAllFeeds } from './rssParser.js'
 import { RSS_FEEDS } from '../constants/feeds.js'
 import { NewsItem } from '../models/NewsItem.js'
 
-let isRefreshing = false
+// ── Internal Helper ───────────────────────────────────────────────────────────
+
+/**
+ * Fetches all RSS feeds on the fly and merges them with Custom DB news.
+ * Returning a freshly parsed array sorted by publishedAt.
+ */
+async function getAllNews() {
+  try {
+    // Isolate DB query so its failure doesn't block RSS feeds
+    const customItemsPromise = NewsItem.find({ isCustom: true }).lean().catch(err => {
+      console.warn('[Cache] Could not fetch custom DB news (DB offline/timeout):', err.message)
+      return []
+    })
+
+    const [rssItems, customItems] = await Promise.all([
+      parseAllFeeds(RSS_FEEDS),
+      customItemsPromise
+    ])
+
+    // Merge and sort in-memory (descending by publishedAt)
+    return [...rssItems, ...customItems].sort(
+      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    )
+  } catch (err) {
+    console.error('[Cache] getAllNews failed:', err.message)
+    return []
+  }
+}
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
 export async function getPaginatedNews({ page = 1, limit = 12, category = 'all' }) {
-  const query = category === 'all' ? {} : { category }
-  
   try {
-    const total = await NewsItem.countDocuments(query)
+    let items = await getAllNews()
+
+    if (category !== 'all') {
+      items = items.filter(item => item.category === category)
+    }
+
+    const total = items.length
     const totalPages = Math.max(1, Math.ceil(total / limit))
     const safePage = Math.min(Math.max(1, page), totalPages)
     const skip = (safePage - 1) * limit
 
-    const items = await NewsItem.find(query)
-      .sort({ publishedAt: -1 })
-      .skip(skip)
-      .limit(limit)
+    const paginatedItems = items.slice(skip, skip + limit)
 
-    return { items, total, page: safePage, totalPages }
+    return { items: paginatedItems, total, page: safePage, totalPages }
   } catch (err) {
     console.error('[Cache] getPaginatedNews failed:', err.message)
     return { items: [], total: 0, page: 1, totalPages: 1 }
@@ -31,27 +59,25 @@ export async function searchNews({ q = '', page = 1, limit = 12 }) {
   const lower = q.toLowerCase().trim()
   if (!lower) return { items: [], total: 0, page: 1, totalPages: 0 }
 
-  const query = {
-    $or: [
-      { title: { $regex: lower, $options: 'i' } },
-      { description: { $regex: lower, $options: 'i' } },
-      { 'source.name': { $regex: lower, $options: 'i' } },
-      { category: { $regex: lower, $options: 'i' } },
-    ],
-  }
-
   try {
-    const total = await NewsItem.countDocuments(query)
+    let items = await getAllNews()
+    
+    // In-memory case-insensitive search matching the old MongoDB $or query
+    items = items.filter(item => 
+      (item.title && item.title.toLowerCase().includes(lower)) ||
+      (item.description && item.description.toLowerCase().includes(lower)) ||
+      (item.source?.name && item.source.name.toLowerCase().includes(lower)) ||
+      (item.category && item.category.toLowerCase().includes(lower))
+    )
+
+    const total = items.length
     const totalPages = Math.max(1, Math.ceil(total / limit))
     const safePage = Math.min(Math.max(1, page), totalPages)
     const skip = (safePage - 1) * limit
 
-    const items = await NewsItem.find(query)
-      .sort({ publishedAt: -1 })
-      .skip(skip)
-      .limit(limit)
+    const paginatedItems = items.slice(skip, skip + limit)
 
-    return { items, total, page: safePage, totalPages, query: q }
+    return { items: paginatedItems, total, page: safePage, totalPages, query: q }
   } catch (err) {
     console.error('[Cache] searchNews failed:', err.message)
     return { items: [], total: 0, page: 1, totalPages: 1, query: q }
@@ -60,53 +86,17 @@ export async function searchNews({ q = '', page = 1, limit = 12 }) {
 
 export async function getItemById(id) {
   try {
-    return await NewsItem.findOne({ id })
+    // Find item dynamically from the fresh feeds or DB custom news
+    const items = await getAllNews()
+    const item = items.find(item => item.id === id)
+    return item || null
   } catch (err) {
     return null
   }
 }
 
 export async function getLastRefreshedAt() {
-  try {
-    const lastItem = await NewsItem.findOne().sort({ updatedAt: -1 })
-    return lastItem ? lastItem.updatedAt.toISOString() : null
-  } catch (err) {
-    return null
-  }
+  // We fetch directly on request, so data is always 'fresh' to the current time, 
+  // though Edge Cache controls the actual age.
+  return new Date().toISOString()
 }
-
-// ── Internal ─────────────────────────────────────────────────────────────────
-
-export async function refresh() {
-  if (isRefreshing) return
-  isRefreshing = true
-
-  console.log('[Cache] Refreshing feeds…')
-  const start = Date.now()
-
-  try {
-    const freshItems = await parseAllFeeds(RSS_FEEDS)
-    
-    // Bulk upsert items
-    const operations = freshItems.map((item) => ({
-      updateOne: {
-        filter: { id: item.id },
-        update: { $set: item },
-        upsert: true,
-      },
-    }))
-
-    if (operations.length > 0) {
-      const result = await NewsItem.bulkWrite(operations)
-      console.log(`[Cache] Refresh complete — ${result.upsertedCount} new, ${result.modifiedCount} updated (${Date.now() - start}ms)`)
-    } else {
-      console.log(`[Cache] No items fetched from feeds.`)
-    }
-  } catch (err) {
-    console.error('[Cache] Refresh failed:', err.message)
-  } finally {
-    isRefreshing = false
-  }
-}
-
-// Removed: startScheduler and syncCustomNews (handled by Vercel Cron and DB persistence)
